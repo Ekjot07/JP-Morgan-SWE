@@ -1,0 +1,128 @@
+From df02bb21038781364a84e382a7713367d92ec1e6 Mon Sep 17 00:00:00 2001
+From: Ekjot Panesar <ekjotsingh2002@gmail.com>
+Date: Fri, 24 Mar 2023 01:53:16 +0530
+Subject: [PATCH] final code updated
+
+---
+ package-lock.json |  1 +
+ package.json      |  6 +++++-
+ src/App.tsx       | 26 +++++++++++++++++++-------
+ src/Graph.tsx     | 11 ++++++++++-
+ 4 files changed, 35 insertions(+), 9 deletions(-)
+
+diff --git a/package-lock.json b/package-lock.json
+index 21b4315..9b85d2c 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -7,6 +7,7 @@
+     "": {
+       "name": "bank-merge-co-task-2",
+       "version": "0.1.0",
++      "license": "ISC",
+       "dependencies": {
+         "@finos/perspective": "^1.6.2",
+         "@finos/perspective-viewer": "^1.6.2",
+diff --git a/package.json b/package.json
+index ca234e9..3828ab6 100644
+--- a/package.json
++++ b/package.json
+@@ -36,5 +36,9 @@
+     "awesome-typescript-loader": "^5.2.1",
+     "source-map-loader": "^0.2.4",
+     "typescript": "^3.2.4"
+-  }
++  },
++  "description": "Starter repo for task 2 of JPMC's Forage program",
++  "main": "index.js",
++  "author": "",
++  "license": "ISC"
+ }
+diff --git a/src/App.tsx b/src/App.tsx
+index 0728518..15bcb49 100755
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -8,6 +8,7 @@ import './App.css';
+  */
+ interface IState {
+   data: ServerRespond[],
++  showGraph: boolean,
+ }
+ 
+ /**
+@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
+       // data saves the server responds.
+       // We use this state to parse data down to the child element (Graph) as element property
+       data: [],
++      showGraph:false,
+     };
+   }
+ 
+@@ -29,19 +31,29 @@ class App extends Component<{}, IState> {
+    * Render Graph react component with state.data parse as property data
+    */
+   renderGraph() {
+-    return (<Graph data={this.state.data}/>)
++    if(this.state.showGraph){
++      return (<Graph data={this.state.data}/>)
++    }
+   }
+ 
+   /**
+    * Get new data from server and update the state with the new data
+    */
+   getDataFromServer() {
+-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
+-      // Update the state by creating a new array of data that consists of
+-      // Previous data in the state and the new data from server
+-      this.setState({ data: [...this.state.data, ...serverResponds] });
+-    });
+-  }
++    let x=0;
++      const interval = setInterval(() =>{
++      DataStreamer.getData((serverResponds: ServerRespond[]) => {
++        this.setState({ 
++          data: serverResponds, 
++          showGraph: true 
++        });
++      });
++    x++;
++    if(x>1000){
++     clearInterval(interval);
++    }
++  },100);
++}
+ 
+   /**
+    * Render the App react component
+diff --git a/src/Graph.tsx b/src/Graph.tsx
+index 3b2a7da..976f24c 100644
+--- a/src/Graph.tsx
++++ b/src/Graph.tsx
+@@ -14,7 +14,7 @@ interface IProps {
+  * Perspective library adds load to HTMLElement prototype.
+  * This interface acts as a wrapper for Typescript compiler.
+  */
+-interface PerspectiveViewerElement {
++interface PerspectiveViewerElement extends HTMLElement {
+   load: (table: Table) => void,
+ }
+ 
+@@ -49,6 +49,15 @@ class Graph extends Component<IProps, {}> {
+ 
+       // Add more Perspective configurations here.
+       elem.load(this.table);
++      elem.setAttribute('view', 'y_line');
++      elem.setAttribute('column-pivots', '["stock"]');
++      elem.setAttribute('row-pivots', '["timestamp"]');
++      elem.setAttribute('columns', '["top_ask_price"]');
++      elem.setAttribute('aggregates', `
++        {"stock": "distinct count",
++        "top_ask_price": "avg",
++        "top_bid_price": "avg",
++        "timestamp": "distinct count"}`);
+     }
+   }
+ 
+-- 
+2.34.1.windows.1
+
